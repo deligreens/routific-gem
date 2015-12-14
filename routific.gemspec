@@ -4,6 +4,7 @@ Gem::Specification.new do |s|
   s.date              = '2015-10-26'
   s.add_runtime_dependency('rest-client', '~> 1.7')
   s.add_runtime_dependency('json', '~> 1.8')
+  s.add_development_dependency('rake')
   s.add_development_dependency('rspec', '~> 3.0')
   s.add_development_dependency('faker', '~> 1.4')
   s.add_development_dependency('dotenv', '~> 0.11')
