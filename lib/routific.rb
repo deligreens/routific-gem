@@ -75,36 +75,58 @@ class Routific
       @@endpoint = value
     end
 
-    # Returns the route using the specified access token, visits and fleet information
-    # If no access token is provided, the default access token previously set is used
-    # If the default access token either is nil or has not been set, an ArgumentError is raised
     def getRoute(data, token = @@token, endpoint = @@endpoint)
+      json = request(
+        path:   "v1/#{endpoint}",
+        method: :post,
+        data:   data.to_json,
+        token:  token
+      )
+      if json
+        RoutificApi::Route.parse(json)
+      else
+        nil
+      end
+    end
+
+    private
+
+    def request(path:, method:, token:, data: nil)
       if token.nil?
-        raise ArgumentError, "access token must be set"
+        raise ArgumentError, 'Access token must be set.'
       end
 
-      # Prefix the token with "bearer " if missing during assignment
-      prefixed_token = (/bearer /.match(token).nil?) ? "bearer #{token}" : token
+      # Prefix the token with "bearer " if missing
+      unless token =~ /\Abearer /
+        token = "bearer #{token}"
+      end
+
+      unless %i(get post).include?(method.to_sym)
+        raise ArgumentError, 'Only get and post methods are supported.'
+      end
+
+      args = {
+        method: method,
+        url:    "https://api.routific.com/#{path}",
+        headers: {
+          authorization: token,
+          content_type:  :json,
+          accept:        :json
+        }
+      }
+      if method.to_sym == :post && data
+        args[:payload] = data
+      end
 
       begin
-        # Sends HTTP request to Routific API server
-        response = RestClient.post("https://api.routific.com/v1/#{endpoint}",
-          data.to_json,
-          'Authorization' => prefixed_token,
-          content_type: :json,
-          accept: :json
-          )
-
-        # Parse the HTTP request response to JSON
-        jsonResponse = JSON.parse(response)
-
-        # Parse the JSON representation into a RoutificApi::Route object
-        RoutificApi::Route.parse(jsonResponse)
+        response = RestClient::Request.execute args
       rescue => e
         puts e
         errorResponse = JSON.parse e.response.body
         puts "Received HTTP #{e.message}: #{errorResponse["error"]}"
         nil
+      else
+        JSON.parse(response)
       end
     end
   end
