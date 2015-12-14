@@ -17,6 +17,12 @@ describe Routific do
     end
 
     describe '#endpoint=' do
+      around do |example|
+        old_endpoint = routific.endpoint
+        example.run
+        routific.endpoint = old_endpoint
+      end
+
       it 'changes the endpoint if a valid endpoint is given' do
         endpoints.each do |endpoint|
           routific.endpoint = endpoint
@@ -116,6 +122,12 @@ describe Routific do
     end
 
     describe '.endpoint=' do
+      around do |example|
+        old_endpoint = Routific.endpoint
+        example.run
+        Routific.endpoint = old_endpoint
+      end
+
       it 'changes the endpoint if a valid endpoint is given' do
         endpoints.each do |endpoint|
           Routific.endpoint = endpoint
