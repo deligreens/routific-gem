@@ -6,6 +6,7 @@ require_relative './routific/visit'
 require_relative './routific/vehicle'
 require_relative './routific/route'
 require_relative './routific/way_point'
+require_relative './routific/job'
 
 # Main class of this gem
 class Routific
@@ -76,16 +77,25 @@ class Routific
     end
 
     def getRoute(data, token = @@token, endpoint = @@endpoint)
-      json = request(
-        path:   "v1/#{endpoint}",
-        method: :post,
-        data:   data.to_json,
-        token:  token
-      )
+      json = request path:   "v1/#{endpoint}",
+                     method: :post,
+                     data:   data.to_json,
+                     token:  token
       if json
-        RoutificApi::Route.parse(json)
-      else
-        nil
+        if endpoint =~ /-long\z/
+          RoutificApi::Job.new(id: json['job_id'])
+        else
+          RoutificApi::Route.parse(json)
+        end
+      end
+    end
+
+    def job(job_id, token = @@token)
+      json = request path:   "jobs/#{job_id}",
+                     method: :get,
+                     token:  token
+      if json
+        RoutificApi::Job.parse(json)
       end
     end
 
@@ -102,7 +112,7 @@ class Routific
       end
 
       unless %i(get post).include?(method.to_sym)
-        raise ArgumentError, 'Only get and post methods are supported.'
+        raise ArgumentError, 'Only GET and POST methods are supported.'
       end
 
       args = {
