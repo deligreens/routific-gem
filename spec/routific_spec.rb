@@ -79,37 +79,62 @@ describe Routific do
     end
 
     describe "#getRoute" do
-      before do
-        routific.setVisit("order_1", {
-          "start" => "9:00",
-          "end" => "12:00",
-          "duration" => 10,
-          "location" => {
-            "name" => "6800 Cambie",
-            "lat" => 49.227107,
-            "lng" => -123.1163085,
-          }
-        })
+      describe 'vehicle routing endpoints' do
+        before do
+          routific.setVisit("order_1", {
+            "start" => "9:00",
+            "end" => "12:00",
+            "duration" => 10,
+            "location" => {
+              "name" => "6800 Cambie",
+              "lat" => 49.227107,
+              "lng" => -123.1163085,
+            }
+          })
 
-        routific.setVehicle("vehicle_1", {
-          "start_location" => {
-            "name" => "800 Kingsway",
-            "lat" => 49.2553636,
-            "lng" => -123.0873365,
-          },
-          "end_location" => {
-            "name" => "800 Kingsway",
-            "lat" => 49.2553636,
-            "lng" => -123.0873365,
-          },
-          "shift_start" => "8:00",
-          "shift_end" => "12:00",
-        })
+          routific.setVehicle("vehicle_1", {
+            "start_location" => {
+              "name" => "800 Kingsway",
+              "lat" => 49.2553636,
+              "lng" => -123.0873365,
+            },
+            "end_location" => {
+              "name" => "800 Kingsway",
+              "lat" => 49.2553636,
+              "lng" => -123.0873365,
+            },
+            "shift_start" => "8:00",
+            "shift_end" => "12:00",
+          })
+        end
+
+        describe 'vrp' do
+          before do
+            routific.endpoint = 'vrp'
+          end
+
+          it "returns a Route instance" do
+            route = routific.getRoute()
+            expect(route).to be_instance_of(RoutificApi::Route)
+          end
+        end
+
+        describe 'vrp-long' do
+          before do
+            routific.endpoint = 'vrp-long'
+          end
+
+          it 'returns a Job instance with an ID' do
+            route = routific.getRoute()
+            expect(route).to be_instance_of(RoutificApi::Job)
+            expect(route.id).to_not be_nil
+          end
+        end
       end
 
-      it "returns a Route instance" do
-        route = routific.getRoute()
-        expect(route).to be_instance_of(RoutificApi::Route)
+      describe 'pickup and delivery endpoints' do
+        describe 'pdp'
+        describe 'pdp-long'
       end
     end
   end
@@ -224,6 +249,35 @@ describe Routific do
             expect(/bearer /.match(key).nil?).to be true
             expect(Routific.getRoute(@data, key)).to be_instance_of(RoutificApi::Route)
           end
+        end
+      end
+    end
+
+    describe '.job' do
+      let(:job_id)  { 'ii5w2kb5846' }
+      let(:api_url) { "https://api.routific.com/jobs/#{job_id}" }
+
+      context 'without access token' do
+        it 'raises an ArgumentError' do
+          expect { Routific.job(job_id, nil) }.to raise_error(ArgumentError)
+        end
+      end
+
+      context 'with an access token' do
+        before do
+          Routific.setToken(ENV["API_KEY"])
+          stub_request(:get, api_url).
+            to_return(status: 200, body: Factory::JOB_API_RESPONSE.to_json)
+        end
+
+        it 'sends a requst to the Routific API' do
+          Routific.job(job_id)
+          expect(a_request(:get, api_url)).to have_been_made.once
+        end
+
+        it 'calls RoutificApi::Route.parse with the correct JSON' do
+          expect(RoutificApi::Job).to receive(:parse).with(Factory::JOB_API_RESPONSE)
+          Routific.job(job_id)
         end
       end
     end
