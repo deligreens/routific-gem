@@ -7,6 +7,7 @@ require 'dotenv'
 Dotenv.load
 
 require 'routific'
+require 'pry'
 
 require_relative './factory'
 
