@@ -15,13 +15,14 @@ class Routific
 
   ENDPOINTS = %i(vrp vrp-long pdp pdp-long)
 
+  @@token    = nil
   @@endpoint = ENDPOINTS.first
 
   attr_reader :token, :visits, :fleet, :endpoint
 
   # Constructor
   # token: Access token for Routific API
-  def initialize(token)
+  def initialize(token = @@token)
     @token = token
     @visits = {}
     @fleet = {}

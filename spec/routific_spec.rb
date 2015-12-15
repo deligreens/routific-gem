@@ -3,12 +3,30 @@ require_relative './helper/spec_helper'
 describe Routific do
   let(:endpoints) { %w(vrp vrp-long pdp pdp-long) }
 
-  describe "instance methods" do
-    subject(:routific) { Routific.new(ENV["API_KEY"]) }
-
-    it "has token" do
-      expect(routific.token).to eq(ENV["API_KEY"])
+  describe 'initializing' do
+    before do
+      Routific.setToken 'foo'
     end
+
+    context 'without a token' do
+      subject { Routific.new }
+
+      it 'uses the class token by default' do
+        expect(subject.token).to eq('foo')
+      end
+    end
+
+    context 'with a token' do
+      subject { Routific.new('bar') }
+
+      it 'uses that token' do
+        expect(subject.token).to eq('bar')
+      end
+    end
+  end
+
+  describe "instance methods" do
+    subject(:routific) { Routific.new(ENV['API_KEY']) }
 
     describe '#endpoint' do
       it 'returns the default endpoint' do
