@@ -78,6 +78,8 @@ class Routific
     end
 
     def getRoute(data, token = @@token, endpoint = @@endpoint)
+      data = format_timestamps(data)
+
       json = request path:   "v1/#{endpoint}",
                      method: :post,
                      data:   data.to_json,
@@ -138,6 +140,18 @@ class Routific
         nil
       else
         JSON.parse(response)
+      end
+    end
+
+    def format_timestamps(data)
+      data.each_with_object({}) do |(key, value), hash|
+        hash[key] = if value.is_a?(Hash)
+                    format_timestamps(value)
+                  elsif value.respond_to?(:strftime)
+                    value.strftime('%H:%M').sub(/\A0/, '')
+                  else
+                    value
+                  end
       end
     end
   end
