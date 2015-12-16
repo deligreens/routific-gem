@@ -27,5 +27,11 @@ module RoutificApi
       end
       new attrs
     end
+
+    %w(pending finished).each do |s|
+      define_method "#{s}?" do
+        status == s
+      end
+    end
   end
 end
