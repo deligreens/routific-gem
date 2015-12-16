@@ -39,15 +39,15 @@ describe RoutificApi::Job do
 
   describe '#pending?' do
     it 'returns true if status is "pending", false otherwise' do
-      expect(described_class.new(status: 'pending').pending?).to be_truthy
-      expect(described_class.new(status: 'finished').pending?).to be_falsy
+      expect(described_class.new(status: 'pending')).to be_pending
+      expect(described_class.new(status: 'finished')).to_not be_pending
     end
   end
 
   describe '#finished?' do
     it 'returns true if status is "finished", false otherwise' do
-      expect(described_class.new(status: 'finished').finished?).to be_truthy
-      expect(described_class.new(status: 'pending').finished?).to be_falsy
+      expect(described_class.new(status: 'finished')).to be_finished
+      expect(described_class.new(status: 'pending')).to_not be_finished
     end
   end
 end
