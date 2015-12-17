@@ -15,11 +15,10 @@ module RoutificApi
     end
 
     def self.parse(json)
-      route = Route.parse(json['output'])
-      attrs = {
-        raw:   json,
-        route: route
-      }
+      attrs = { raw: json }
+      if route_json = json['output']
+        attrs[:route] = Route.parse(route_json)
+      end
       ATTRIBUTES.each do |attr|
         unless attrs.has_key?(attr)
           attrs[attr] = json[attr.to_s]
