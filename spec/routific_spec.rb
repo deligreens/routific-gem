@@ -1,7 +1,40 @@
 require_relative './helper/spec_helper'
 
 describe Routific do
-  let(:endpoints) { %w(vrp vrp-long pdp pdp-long) }
+  let(:base_api_url) { 'https://api.routific.com' }
+  let(:endpoints)    { %w(vrp vrp-long pdp pdp-long) }
+  let(:visits) { {
+    'order_1' => {
+      'start'    => '9:00',
+      'end'      => '12:00',
+      'duration' => 10,
+      'location' => {
+        'name' => '6800 Cambie',
+        'lat'  => 49.227107,
+        'lng'  => -123.1163085
+      }
+    }
+  } }
+  let(:fleet) { {
+    'vehicle_1' => {
+      'start_location' => {
+        'name' => '800 Kingsway',
+        'lat'  => 49.2553636,
+        'lng'  => -123.0873365
+      },
+      'end_location' => {
+        'name' => '800 Kingsway',
+        'lat'  => 49.2553636,
+        'lng'  => -123.0873365
+      },
+      'shift_start' => '8:00',
+      'shift_end'   => '12:00'
+    }
+  } }
+  let(:route_data) { {
+    visits: visits,
+    fleet:  fleet
+  } }
 
   describe 'initializing' do
     before do
@@ -99,31 +132,13 @@ describe Routific do
     describe "#getRoute" do
       describe 'vehicle routing endpoints' do
         before do
-          routific.setVisit("order_1", {
-            "start" => "9:00",
-            "end" => "12:00",
-            "duration" => 10,
-            "location" => {
-              "name" => "6800 Cambie",
-              "lat" => 49.227107,
-              "lng" => -123.1163085,
-            }
-          })
+          visits.each do |id, params|
+            routific.setVisit(id, params)
+          end
 
-          routific.setVehicle("vehicle_1", {
-            "start_location" => {
-              "name" => "800 Kingsway",
-              "lat" => 49.2553636,
-              "lng" => -123.0873365,
-            },
-            "end_location" => {
-              "name" => "800 Kingsway",
-              "lat" => 49.2553636,
-              "lng" => -123.0873365,
-            },
-            "shift_start" => "8:00",
-            "shift_end" => "12:00",
-          })
+          fleet.each do |id, params|
+            routific.setVehicle(id, params)
+          end
         end
 
         describe 'vrp' do
@@ -208,48 +223,46 @@ describe Routific do
       end
 
       describe "valid access token" do
-        before do
-          visits = {
-            "order_1" => {
-              "start" => "9:00",
-              "end" => "12:00",
-              "duration" => 10,
-              "location" => {
-                "name" => "6800 Cambie",
-                "lat" => 49.227107,
-                "lng" => -123.1163085
-              }
-            }
-          }
-          fleet = {
-            "vehicle_1" => {
-              "start_location" => {
-                "name" => "800 Kingsway",
-                "lat" => 49.2553636,
-                "lng" => -123.0873365
-              },
-              "end_location" => {
-                "name" => "800 Kingsway",
-                "lat" => 49.2553636,
-                "lng" => -123.0873365
-              },
-              "shift_start" => "8:00",
-              "shift_end" => "12:00"
-            }
-          }
-          @data = {
-            visits: visits,
-            fleet: fleet
-          }
-        end
-
         describe "access token is set" do
           before do
             Routific.setToken(ENV["API_KEY"])
           end
 
           it "returns a Route instance" do
-            expect(Routific.getRoute(@data)).to be_instance_of(RoutificApi::Route)
+            expect(Routific.getRoute(route_data)).to be_instance_of(RoutificApi::Route)
+          end
+
+          describe 'formatting timestamps' do
+            # Change the "start" and "end" values to
+            # Time objects for this test.
+            let(:visits) { {
+              'order_1' => {
+                'start'    => Time.parse('9:00'),
+                'end'      => Time.parse('12:00'),
+                'duration' => 10,
+                'location' => {
+                  'name' => '6800 Cambie',
+                  'lat'  => 49.227107,
+                  'lng'  => -123.1163085
+                }
+              }
+            } }
+
+            it 'converts Time objects into strings like "8:15"' do
+              expect(RestClient::Request).to receive(:execute) do |args|
+                data = JSON.parse(args[:payload])
+                # Check that the Time objects have been converted
+                # to strings in the correct format.
+                expect(data['visits']['order_1']['start']).to eq('9:00')
+                expect(data['visits']['order_1']['end']).to eq('12:00')
+                # Check that the other params are still the same
+                %w(duration location).each do |param|
+                  expect(data['visits']['order_1'][param]).to eq(visits['order_1'][param])
+                end
+                Factory::JOB_API_RESPONSE['output'].to_json
+              end
+              Routific.getRoute(route_data)
+            end
           end
         end
 
@@ -259,13 +272,13 @@ describe Routific do
           end
 
           it "returns a Route instance" do
-            expect(Routific.getRoute(@data, ENV["API_KEY"])).to be_instance_of(RoutificApi::Route)
+            expect(Routific.getRoute(route_data, ENV["API_KEY"])).to be_instance_of(RoutificApi::Route)
           end
 
           it "still successful even if missing prefix 'bearer ' in key" do
             key = ENV["API_KEY"].sub /bearer /, ''
             expect(/bearer /.match(key).nil?).to be true
-            expect(Routific.getRoute(@data, key)).to be_instance_of(RoutificApi::Route)
+            expect(Routific.getRoute(route_data, key)).to be_instance_of(RoutificApi::Route)
           end
         end
       end
@@ -273,7 +286,7 @@ describe Routific do
 
     describe '.job' do
       let(:job_id)  { 'ii5w2kb5846' }
-      let(:api_url) { "https://api.routific.com/jobs/#{job_id}" }
+      let(:api_url) { "#{base_api_url}/jobs/#{job_id}" }
 
       context 'without access token' do
         it 'raises an ArgumentError' do
