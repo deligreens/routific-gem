@@ -1,13 +1,13 @@
 module RoutificApi
   class Job
-    ATTRIBUTES = %i(raw started_at finished_at id opts status visits fleet region route)
+    ATTRIBUTES = [:raw, :started_at, :finished_at, :id, :opts, :status, :visits, :fleet, :region, :route]
 
     attr_reader *ATTRIBUTES
 
     def initialize(attrs)
       attrs.each do |attr, value|
         next unless ATTRIBUTES.include?(attr.to_sym)
-        if %i(started_at finished_at).include?(attr.to_sym)
+        if [:started_at, :finished_at].include?(attr.to_sym)
           value = Time.parse(value)
         end
         instance_variable_set "@#{attr}", value

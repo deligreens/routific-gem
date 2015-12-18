@@ -13,7 +13,7 @@ class Routific
   Error           = Class.new(StandardError)
   InvalidEndpoint = Class.new(Error)
 
-  ENDPOINTS = %i(vrp vrp-long pdp pdp-long)
+  ENDPOINTS = [:vrp, :'vrp-long', :pdp, :'pdp-long']
 
   @@token    = nil
   @@endpoint = ENDPOINTS.first
@@ -115,7 +115,7 @@ class Routific
         token = "bearer #{token}"
       end
 
-      unless %i(get post).include?(method.to_sym)
+      unless [:get, :post].include?(method.to_sym)
         raise ArgumentError, 'Only GET and POST methods are supported.'
       end
 
