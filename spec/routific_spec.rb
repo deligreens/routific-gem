@@ -36,6 +36,19 @@ describe Routific do
     fleet:  fleet
   } }
 
+  shared_examples_for 'making a valid request' do
+    it 'makes a request with the correct params' do
+      expect(RestClient::Request).to receive(:execute) do |args|
+        expect(args).to include(timeout: 20,
+                                headers: including(content_type:  :json,
+                                                   accept:        :json)
+        )
+        response_hash.to_json
+      end
+      request
+    end
+  end
+
   describe 'initializing' do
     before do
       Routific.setToken 'foo'
@@ -216,6 +229,11 @@ describe Routific do
     end
 
     describe ".getRoute" do
+      it_behaves_like 'making a valid request' do
+        let(:request)       { Routific.getRoute(route_data) }
+        let(:response_hash) { Factory::ROUTE_API_RESPONSE }
+      end
+
       describe "access token is nil" do
         it "throws an ArgumentError" do
           expect { Routific.getRoute({}, nil) }.to raise_error(ArgumentError)
@@ -297,16 +315,15 @@ describe Routific do
       context 'with an access token' do
         before do
           Routific.setToken(ENV["API_KEY"])
-          stub_request(:get, api_url).
-            to_return(status: 200, body: Factory::JOB_API_RESPONSE.to_json)
         end
 
-        it 'sends a requst to the Routific API' do
-          Routific.job(job_id)
-          expect(a_request(:get, api_url)).to have_been_made.once
+        it_behaves_like 'making a valid request' do
+          let(:request)       { Routific.job(job_id) }
+          let(:response_hash) { Factory::JOB_API_RESPONSE }
         end
 
         it 'calls RoutificApi::Route.parse with the correct JSON' do
+          stub_request(:get, api_url).to_return(body: Factory::JOB_API_RESPONSE.to_json)
           expect(RoutificApi::Job).to receive(:parse).with(Factory::JOB_API_RESPONSE)
           Routific.job(job_id)
         end

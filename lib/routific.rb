@@ -17,6 +17,7 @@ class Routific
 
   @@token    = nil
   @@endpoint = ENDPOINTS.first
+  @timeout   = 20
 
   attr_reader :token, :visits, :fleet, :endpoint
 
@@ -119,8 +120,9 @@ class Routific
       end
 
       args = {
-        method: method,
-        url:    "https://api.routific.com/#{path}",
+        method:  method,
+        url:     "https://api.routific.com/#{path}",
+        timeout: @timeout,
         headers: {
           authorization: token,
           content_type:  :json,
