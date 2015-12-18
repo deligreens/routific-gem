@@ -13,25 +13,25 @@ class Routific
   Error           = Class.new(StandardError)
   InvalidEndpoint = Class.new(Error)
 
-  ENDPOINTS = %i(vrp vrp-long pdp pdp-long)
+  ENDPOINTS = [:vrp, :'vrp-long', :pdp, :'pdp-long']
 
-  @@token    = nil
-  @@endpoint = ENDPOINTS.first
-  @timeout   = 20
+  @token    = nil
+  @endpoint = ENDPOINTS.first
+  @timeout  = 20
 
   attr_reader :token, :visits, :fleet, :endpoint
 
   # Constructor
   # token: Access token for Routific API
-  def initialize(token = @@token)
+  def initialize(token = self.class.token)
     @token = token
     @visits = {}
     @fleet = {}
-    @endpoint = @@endpoint
+    @endpoint = self.class.endpoint
   end
 
   def endpoint=(value)
-    raise InvalidEndpoint unless ENDPOINTS.include?(value.to_sym)
+    self.class.check_endpoint! value
     @endpoint = value
   end
 
@@ -60,25 +60,19 @@ class Routific
   end
 
   class << self
+    attr_reader :token, :endpoint
+
     # Sets the default access token to use
     def setToken(token)
-      @@token = token
-    end
-
-    def token
-      @@token
-    end
-
-    def endpoint
-      @@endpoint
+      @token = token
     end
 
     def endpoint=(value)
-      raise InvalidEndpoint unless ENDPOINTS.include?(value.to_sym)
-      @@endpoint = value
+      check_endpoint! value
+      @endpoint = value
     end
 
-    def getRoute(data, token = @@token, endpoint = @@endpoint)
+    def getRoute(data, token = @token, endpoint = @endpoint)
       data = format_timestamps(data)
 
       json = request path:   "v1/#{endpoint}",
@@ -94,13 +88,17 @@ class Routific
       end
     end
 
-    def job(job_id, token = @@token)
+    def job(job_id, token = @token)
       json = request path:   "jobs/#{job_id}",
                      method: :get,
                      token:  token
       if json
         RoutificApi::Job.parse(json)
       end
+    end
+
+    def check_endpoint!(endpoint)
+      raise InvalidEndpoint unless ENDPOINTS.include?(endpoint.to_sym)
     end
 
     private
@@ -115,7 +113,7 @@ class Routific
         token = "bearer #{token}"
       end
 
-      unless %i(get post).include?(method.to_sym)
+      unless [:get, :post].include?(method.to_sym)
         raise ArgumentError, 'Only GET and POST methods are supported.'
       end
 
