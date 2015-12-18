@@ -1,6 +1,13 @@
 require_relative './helper/spec_helper'
 
 describe RoutificApi::Job do
+  describe 'initializing' do
+    it 'works with timestamps that are nil' do
+      expect(described_class.new(started_at: nil).started_at).to eq(nil)
+      expect(described_class.new(finished_at: nil).finished_at).to eq(nil)
+    end
+  end
+
   describe '.parse' do
     context 'with valid JSON' do
       let(:json)     { Factory::JOB_API_RESPONSE }
