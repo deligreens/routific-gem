@@ -31,7 +31,7 @@ class Routific
   end
 
   def endpoint=(value)
-    raise InvalidEndpoint unless ENDPOINTS.include?(value.to_sym)
+    self.class.check_endpoint! value
     @endpoint = value
   end
 
@@ -68,7 +68,7 @@ class Routific
     end
 
     def endpoint=(value)
-      raise InvalidEndpoint unless ENDPOINTS.include?(value.to_sym)
+      check_endpoint! value
       @endpoint = value
     end
 
@@ -95,6 +95,10 @@ class Routific
       if json
         RoutificApi::Job.parse(json)
       end
+    end
+
+    def check_endpoint!(endpoint)
+      raise InvalidEndpoint unless ENDPOINTS.include?(endpoint.to_sym)
     end
 
     private

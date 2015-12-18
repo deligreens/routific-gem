@@ -49,6 +49,12 @@ describe Routific do
     end
   end
 
+  shared_examples_for 'checking the endpoint for validity' do
+    it 'raises an error if an invalid endpoint is given' do
+      expect { subject.endpoint = 'invalid' }.to raise_error(Routific::InvalidEndpoint)
+    end
+  end
+
   describe 'initializing' do
     before do
       Routific.setToken 'foo'
@@ -87,15 +93,15 @@ describe Routific do
         routific.endpoint = old_endpoint
       end
 
+      it_behaves_like 'checking the endpoint for validity' do
+        subject { routific }
+      end
+
       it 'changes the endpoint if a valid endpoint is given' do
         endpoints.each do |endpoint|
           routific.endpoint = endpoint
           expect(routific.endpoint).to eq(endpoint)
         end
-      end
-
-      it 'raises an error if an invalid endpoint is given' do
-        expect { routific.endpoint = 'invalid' }.to raise_error(Routific::InvalidEndpoint)
       end
     end
 
@@ -206,8 +212,8 @@ describe Routific do
         end
       end
 
-      it 'raises an error if an invalid endpoint is given' do
-        expect { Routific.endpoint = 'invalid' }.to raise_error(Routific::InvalidEndpoint)
+      it_behaves_like 'checking the endpoint for validity' do
+        subject { Routific }
       end
 
       it 'changes the endpoint for all new instances' do
