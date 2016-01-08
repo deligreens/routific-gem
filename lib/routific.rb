@@ -103,7 +103,12 @@ class Routific
 
     private
 
-    def request(path:, method:, token:, data: nil)
+    def request(options)
+      path   = options.fetch :path
+      method = options.fetch :method
+      token  = options.fetch :token
+      data   = options.fetch :data, nil
+
       if token.nil?
         raise ArgumentError, 'Access token must be set.'
       end
