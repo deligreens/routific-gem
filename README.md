@@ -74,6 +74,18 @@ Returns the route using the previously provided network, visits and fleet inform
 
 Sets the default access token to use
 
+`Routific.setRaiseOnException( boolean )`
+
+Sets whether errors in the Api request and response parsing should throw exceptions or fail silently. Defaults to false.
+
+`Routific.setLogRequests( logger )`
+
+Sets the ruby Logger to be used to log errors, request logs etc. If no logger is explicitly set, logs are sent to STDOUT
+
+`Routific.setLogRequests( boolean )`
+
+Sets whether the result of requests should be logged. Defaults to false.
+
 `Routific.getRoute( id, [params] )`
 
 Returns the route using the specified access token, network, visits and fleet information
