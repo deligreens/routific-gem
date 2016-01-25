@@ -13,6 +13,7 @@ require_relative './routific/job'
 class Routific
   Error           = Class.new(StandardError)
   RequestError    = Class.new(Error)
+  ResponseError   = Class.new(Error)
   InvalidEndpoint = Class.new(Error)
 
   ENDPOINTS = [:vrp, :'vrp-long', :pdp, :'pdp-long']
@@ -120,7 +121,11 @@ class Routific
                      method: :get,
                      token:  token
       if json
-        RoutificApi::Job.parse(json)
+        if @raise_on_exception && (json["status"] == "error")
+          raise ResponseError.new(json["output"])
+        else
+          RoutificApi::Job.parse(json)
+        end
       end
     end
 
