@@ -394,6 +394,33 @@ describe Routific do
           expect(RoutificApi::Job).to receive(:parse).with(Factory::JOB_API_RESPONSE)
           Routific.job(job_id)
         end
+
+        context "when the api returns an error" do
+          before(:each) do
+            error_json = { "status" => "error", "output" => "there was an error"}
+            allow(Routific).to receive(:request).and_return(error_json)
+          end
+
+          after(:each) do
+            Routific.setRaiseOnException(false)
+          end
+
+          it "raises an exception if raise_on_exception if true" do
+            Routific.setRaiseOnException(true)
+
+            expect do
+              Routific.job(job_id)
+            end.to raise_error(Routific::ResponseError)
+          end
+
+          it "lets the job parser try and parse it anyway if raise_on_exception is false" do
+            Routific.setRaiseOnException(false)
+
+            expect(RoutificApi::Job).to receive(:parse)
+
+            Routific.job(job_id)
+          end
+        end
       end
     end
   end
