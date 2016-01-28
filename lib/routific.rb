@@ -183,12 +183,14 @@ class Routific
         logger.info(response) if log_requests
         JSON.parse(response)
       rescue => error
+        routific_error_message = JSON.parse(error.response.body)["error"]
+
         if raise_on_exception
-          raise RequestError.new(error)
+          error_message = "#{routific_error_message}. (Original error: #{error.class}: #{error.message})"
+          raise RequestError.new(error_message)
         else
           logger.error(error)
-          errorResponse = JSON.parse error.response.body
-          logger.error("Received HTTP #{error.message}: #{errorResponse["error"]}")
+          logger.error("Received HTTP #{error.message}: #{routific_error_message}")
           nil
         end
       end
