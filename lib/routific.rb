@@ -8,6 +8,7 @@ require_relative './routific/vehicle'
 require_relative './routific/route'
 require_relative './routific/way_point'
 require_relative './routific/job'
+require_relative './routific/options'
 
 # Main class of this gem
 class Routific
@@ -16,21 +17,20 @@ class Routific
   ResponseError   = Class.new(Error)
   InvalidEndpoint = Class.new(Error)
 
-  ENDPOINTS = [:vrp, :'vrp-long', :pdp, :'pdp-long']
+  ENDPOINTS = ['v1/vrp', 'v1/vrp-long', 'v1/pdp', 'v1/pdp-long', 'v1/min-idle', 'product/projects']
 
-  @token    = nil
-  @endpoint = ENDPOINTS.first
   @timeout  = 20
 
-  attr_reader :token, :visits, :fleet, :endpoint
+  attr_reader :token, :visits, :fleet, :endpoint, :options
 
   # Constructor
   # token: Access token for Routific API
-  def initialize(token = self.class.token)
+  def initialize(token, endpoint = 'v1/vrp-long')
     @token = token
+    @endpoint = endpoint
     @visits = {}
     @fleet = {}
-    @endpoint = self.class.endpoint
+    @options = {}
   end
 
   def endpoint=(value)
@@ -52,13 +52,18 @@ class Routific
     fleet[id] = RoutificApi::Vehicle.new(id, params)
   end
 
+  def setOptions(params)
+    options = RoutificApi::Options.new(id, params)
+  end
+
   # Returns the route using the previously provided visits and fleet information
-  def getRoute
+  def getRoute()
     data = {
       visits: visits,
-      fleet: fleet
+      fleet: fleet,
     }
 
+    data[:options] = options if options
     Routific.getRoute(data, token, endpoint)
   end
 
@@ -103,7 +108,7 @@ class Routific
     def getRoute(data, token = @token, endpoint = @endpoint)
       data = format_timestamps(data)
 
-      json = request path:   "v1/#{endpoint}",
+      json = request path:   "#{endpoint}",
                      method: :post,
                      data:   data.to_json,
                      token:  token
@@ -130,7 +135,8 @@ class Routific
     end
 
     def check_endpoint!(endpoint)
-      raise InvalidEndpoint unless ENDPOINTS.include?(endpoint.to_sym)
+      p ENDPOINTS
+      raise InvalidEndpoint unless ENDPOINTS.include?(endpoint)
     end
 
     private
