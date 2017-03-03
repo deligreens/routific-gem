@@ -114,7 +114,7 @@ class Routific
                      token:  token
     end
 
-    def getRoute(data, token = @token, endpoint = @endpoint)
+    def getRoute(data, endpoint = @endpoint, token = @token)
       data = format_timestamps(data)
 
       json = request path:   "v1/#{endpoint}",
