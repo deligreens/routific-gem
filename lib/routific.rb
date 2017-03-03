@@ -17,7 +17,7 @@ class Routific
   ResponseError   = Class.new(Error)
   InvalidEndpoint = Class.new(Error)
 
-  ENDPOINTS = ['v1/vrp', 'v1/vrp-long', 'v1/pdp', 'v1/pdp-long', 'v1/min-idle', 'product/projects']
+  ENDPOINTS = ['vrp', 'vrp-long', 'pdp', 'pdp-long', 'min-idle', 'product/projects']
 
   @timeout  = 20
 
@@ -25,7 +25,7 @@ class Routific
 
   # Constructor
   # token: Access token for Routific API
-  def initialize(token, endpoint = 'v1/vrp-long')
+  def initialize(token, endpoint = 'vrp')
     @token = token
     @endpoint = endpoint
     @visits = {}
@@ -64,7 +64,7 @@ class Routific
     }
 
     data[:options] = options if options
-    Routific.getRoute(data, token, endpoint)
+    Routific.getRoute(data, @token, @endpoint)
   end
 
   class << self
@@ -105,10 +105,19 @@ class Routific
       @endpoint = value
     end
 
+    def createProject(data, token = @token)
+      data = format_timestamps(data)
+
+      json = request path:   "product/projects",
+                     method: :post,
+                     data:   data.to_json,
+                     token:  token
+    end
+
     def getRoute(data, token = @token, endpoint = @endpoint)
       data = format_timestamps(data)
 
-      json = request path:   "#{endpoint}",
+      json = request path:   "v1/#{endpoint}",
                      method: :post,
                      data:   data.to_json,
                      token:  token
@@ -135,7 +144,6 @@ class Routific
     end
 
     def check_endpoint!(endpoint)
-      p ENDPOINTS
       raise InvalidEndpoint unless ENDPOINTS.include?(endpoint)
     end
 
