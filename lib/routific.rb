@@ -25,7 +25,7 @@ class Routific
 
   # Constructor
   # token: Access token for Routific API
-  def initialize(token, endpoint = 'v1/vrp-long')
+  def initialize(token, endpoint = 'vrp')
     @token = token
     @endpoint = endpoint
     @visits = {}
