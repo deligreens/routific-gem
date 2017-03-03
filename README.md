@@ -276,8 +276,8 @@ options = {
    "shortest_distance": true,
    "squash_durations": 1,
    "project": {
-      "date": "YYYY-MM-DD",
-      "name": “Project Name"
+      "date": "2017-03-04",
+      "name": "Mon projet"
   }
 }
 
