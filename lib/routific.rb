@@ -223,8 +223,3 @@ class Routific
     end
   end
 end
-
-Routific.setToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1OGI4MmU0N2Y1MGIyNDhiMGE5ZjJlYTMiLCJpYXQiOjE0ODg0NjU0Nzl9.aiQFfU1fOpSFp-kxDKdY4-_ReqUxAbcVTqWKNM440T4")
-@data = {"visits"=>{"order_108"=>{:start=>"19:10", :end=>"21:10", :duration=>9, :phone=>"+33674426177", :name=>"Damien youpi", :notes=>"", "location"=>{:name=>"189 Rue Saint Honoré", :lat=>48.8645465, :lng=>2.332398}}, "order_124"=>{:start=>"21:10", :end=>"23:10", :duration=>9, :phone=>"+33674426177", :name=>"Damien youpi", :notes=>"", "location"=>{:name=>"189 Rue Saint Honoré", :lat=>48.8645465, :lng=>2.332398}}}, "fleet"=>{"vehicule_47"=>{:capacity=>20, :name=>"damien@test.com", :phone_number=>"+33674426177", :shift_start=>"13:00", :shift_end=>"22:15", "start_location"=>{:name=>"Super Halles, Oullins", :lat=>45.7129201, :lng=>4.8199293}, "end_location"=>{:name=>"Super Halles, Oullins", :lat=>45.7129201, :lng=>4.8199293}}}, "options"=>{:duration=>9, :traffic=>"fast", "balance"=>false, "shortest_distance"=>false, "project"=>{:date=>"2017-03-08", :name=>"Tounée 34 - 2017-03-08"}}}
-job_id = Routific.getRoute(@data, "vrp-long").id
-Routific.job(job_id).route
