@@ -78,6 +78,8 @@ Optional arguments in params:
 
 Returns the route using the previously provided network, visits and fleet information
 
+--> cf [Example 1](#example-1)
+
 
 ### Class methods
 
@@ -101,10 +103,6 @@ Sets whether the result of requests should be logged. Defaults to false.
 
 Sets the default endpoint to use
 
-`Routific.createProject(params, token = @token)`
-
-Create a project with the specified data information in your Routific dashboard. The endpoint used for the API call is "product/projects".
-
 `Routific.getRoute( [params], token = @token, endpoint = @endpoint )`
 
 Token and endpoint are optional. Add them if you want to change them.
@@ -120,18 +118,30 @@ Both getRoute functions return the Route object, which has the following attribu
  - unserved: List of visits that could not be scheduled.
  - vehicleRoutes: The optimized schedule
 
+ --> cf [Example 2](#example-2)
+
 * If the endpoint used is "vrp-long" or "pdp-long":
 
-Reurns a hash including the job_id needed to call the job. Call "id" on it on store the result in a variable.
+Returns a hash including the job_id needed to call the job. Call "id" on it on store the result in a variable.
+
+--> cf [Example 3](#example-3)
+
+Please check [Example 4](#example-4) bellow if you want to create a project on Routific Interface with "vrp-long".
 
 `Routific.job(job_id, token = @token).route`
 
-Returns the route for larger-routing problems (long running tasks) using the specified access job_id (to generate using the getRoute method with a "vrp-long" or "pdp-long" endpoint), token, network, visits and fleet information.
+Returns the route for larger-routing problems (long running tasks) using the specified access job_id (to generate using the getRoute method with a "vrp-long" or "pdp-long" endpoint), token, options, visits and fleet information.
+
+`Routific.createProject(params, token = @token)`
+
+Create a project with the specified data information in your Routific dashboard. The endpoint used for the API call is "product/projects".
+
+--> cf [Example 5](#example-5)
 
 
-Examples
+### Examples
 --------
-Example 1:
+#### Example 1:
 
 ```ruby
 require 'routific'
@@ -176,7 +186,7 @@ routific.setOptions("options": {
 route = routific.getRoute()
 ```
 
-Example 2:
+#### Example 2:
 
 ```ruby
 require 'routific'
@@ -231,7 +241,63 @@ data = {
 route = Routific.getRoute(data)
 ```
 
-Example 3:
+#### Example 3:
+
+```ruby
+require 'routific'
+
+Routific.setToken("INSERT API KEY")
+
+visits = {
+  "order_1" => {
+    "start" => "9:00",
+    "end" => "12:00",
+    "duration" => 10,
+    "location" => {
+      "name" => "6800 Cambie",
+      "lat" => 49.227107,
+      "lng" => -123.1163085
+    }
+  }
+}
+
+fleet = {
+  "vehicle_1" => {
+    "start_location" => {
+      "name" => "800 Kingsway",
+      "lat" => 49.2553636,
+      "lng" => -123.0873365
+    },
+    "end_location" => {
+      "name" => "800 Kingsway",
+      "lat" => 49.2553636,
+      "lng" => -123.0873365
+    },
+    "shift_start" => "8:00",
+    "shift_end" => "12:00"
+  }
+}
+
+options = {
+   "traffic": "slow",
+   "min_visits_per_vehicle": 5,
+   "balance": true,
+   "min_vehicles": true,
+   "shortest_distance": true,
+   "squash_durations": 1
+}
+
+data = {
+  visits: visits,
+  fleet: fleet,
+  options: options
+}
+
+job_id = Routific.getRoute(data, "vrp-long").id
+route = Routific.job(job_id).route
+```
+
+#### Example 4:
 
 ```ruby
 require 'routific'
@@ -291,7 +357,7 @@ job_id = Routific.getRoute(data, "vrp-long").id
 route = Routific.job(job_id).route
 ```
 
-Example 4:
+#### Example 5:
 
 ```ruby
 require 'routific'
